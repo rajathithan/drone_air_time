@@ -10,3 +10,5 @@ development.md
 uv.lock
 test_agent.py
 Dockerfile
+.python-version
+.gitignore
