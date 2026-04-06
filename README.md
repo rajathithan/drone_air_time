@@ -1,6 +1,6 @@
 # Drone Flight Safety API
 
-A comprehensive API for analyzing drone flight safety based on weather conditions, archiving results, and scheduling optimal flight windows using AI agents and MCP (Model Context Protocol) tools.
+The Drone Flight time API is an autonomous flight scheduling system. It receives a location and date, fetches high-altitude weather telemetry, archives the data for safety audits, identifies the safest flight window, and reserves that time in the user's Google Calendar for Drone flight time window.
 
 ## Overview
 
