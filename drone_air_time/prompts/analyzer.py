@@ -25,7 +25,7 @@ If multiple 2-hour windows are safe, select the **Optimal Window** based on thes
 - Ensure all output timestamps remain in the local ISO8601 format provided in the data.
 
 ## 6. Required Output Format (JSON)
-The response must be a valid JSON object for the Main Orchestrator to parse:
+The response must be a valid JSON object for the Main Orchestrator to parse. **MANDATORY:** Include the `timezone` from the `weather_data` in the `selected_window`.
 
 ### SUCCESS CASE:
 Return a JSON object with these fields:
