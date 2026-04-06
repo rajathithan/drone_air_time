@@ -1,0 +1,12 @@
+.env
+.DS_Store
+__pycache__
+.vscode
+drone_air_time/.adk
+drone_air_time/.env
+.dockerignore
+.python-version
+development.md
+uv.lock
+test_agent.py
+Dockerfile
