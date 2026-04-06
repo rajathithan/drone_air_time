@@ -1,13 +1,16 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, model_validator
+import uuid
+import json
+import uvicorn
 from typing import Optional
 from datetime import datetime, timedelta, date
-import uuid
-import uvicorn
-import json
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, model_validator
+
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
+
 from drone_air_time.agent import root_agent
 
 app = FastAPI(title="Drone Flight Safety API", version="1.0.0")
