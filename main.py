@@ -10,7 +10,7 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 from drone_air_time.agent import root_agent
 
-app = FastAPI(title="Drone Flight Time API", version="1.0.0")
+app = FastAPI(title="Drone Flight Safety API", version="1.0.0")
 
 session_service = InMemorySessionService()
 runner = Runner(agent=root_agent, app_name="drone_air_time", session_service=session_service)

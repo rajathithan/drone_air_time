@@ -1,6 +1,6 @@
 # Drone Flight Safety API
 
-The Drone Flight time API is an autonomous flight scheduling system. It receives a location and date, fetches high-altitude weather telemetry, archives the data for safety audits, identifies the safest flight window, and reserves that time in the user's Google Calendar for Drone flight time window.
+The Drone Flight Safety API is an autonomous flight scheduling system. It receives a location and date, fetches high-altitude weather telemetry, archives the data for safety audits, identifies the safest flight window, and reserves that time in the user's Google Calendar.
 
 ## Overview
 
