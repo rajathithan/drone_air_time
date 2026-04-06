@@ -32,6 +32,11 @@ How to build fields:
   - Provide concise reasoning from the analyzer result.
   - If analysis failed, explain the failure reason.
 
+Critical rules:
+- NEVER convert times between timezones. Report all times in the flight location's timezone only.
+- Do NOT add "which is X:XX in [other timezone]" conversions. The times are local to the flight location.
+- Do NOT perform any timezone arithmetic.
+
 If some fields are missing from prior agent outputs:
 - Still return a valid JSON object with all required keys.
 - Use best-effort values and describe missing data in workflow_audit.

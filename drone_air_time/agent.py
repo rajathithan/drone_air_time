@@ -126,6 +126,15 @@ def get_weather_forecast(
                         date, latitude, longitude)
     else:
         logging.info("Weather forecast retrieved successfully for date=%s.", date)
+    # Compute ISO 8601 UTC offset string from utc_offset_seconds so downstream
+    # agents can embed it in timestamps without doing timezone math.
+    utc_offset_seconds = data.get("utc_offset_seconds", 0)
+    sign = "+" if utc_offset_seconds >= 0 else "-"
+    abs_seconds = abs(utc_offset_seconds)
+    offset_hours = abs_seconds // 3600
+    offset_minutes = (abs_seconds % 3600) // 60
+    data["utc_offset"] = f"{sign}{offset_hours:02d}:{offset_minutes:02d}"
+    logging.info("Computed utc_offset: %s", data["utc_offset"])
     return data
 
 open_meteo_agent = LlmAgent(

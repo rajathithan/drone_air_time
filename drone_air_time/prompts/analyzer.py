@@ -22,6 +22,7 @@ If multiple 2-hour windows are safe, select the **Optimal Window** based on thes
 
 ## 5. Timezone Alignment
 - Extract the `timezone` string from the root of the JSON (e.g., "America/New_York").
+- Extract the `utc_offset` string from the root of the JSON (e.g., "+05:30", "-04:00"). This is pre-computed.
 - Ensure all output timestamps remain in the local ISO8601 format provided in the data.
 
 ## 6. Required Output Format (JSON)
@@ -34,6 +35,7 @@ Return a JSON object with these fields:
     - "start_time": ISO8601 timestamp e.g. "YYYY-MM-DDTHH:00"
     - "end_time": ISO8601 timestamp e.g. "YYYY-MM-DDTHH:00"
     - "timezone": timezone string e.g. "America/New_York"
+    - "utc_offset": the `utc_offset` string from weather_data e.g. "-04:00" or "+05:30"
 - "metrics":
     - "avg_wind_950mb": float in m/s e.g. "6.96 m/s"
     - "avg_temp": float in °C e.g. "11.1°C"
@@ -93,6 +95,7 @@ Success response example:
     start_time: "2026-04-06T15:00"
     end_time: "2026-04-06T17:00"
     timezone: "America/New_York"
+    utc_offset: "-04:00"
   safety_report:
     avg_wind_950mb: "6.96 m/s"
     avg_temp: "11.1°C"
