@@ -46,7 +46,7 @@ class DroneResponse(BaseModel):
 @app.get("/")
 async def home():
     return {
-        "message": "Welcome to Drone Flight Time API",
+        "message": "Welcome to Drone Flight Safety API",
         "agents": [
             {
                 "name": "OpenMeteo_Sensor",

@@ -48,6 +48,8 @@ Use forecast tool with latitude=40.7128, longitude=-74.0060, hourly=temperature_
 ## 4. Output Specification
 Return the **entire raw JSON response** from the Forecast API to the Orchestrator. Do not summarize the data; the Analyzer Agent will handle the interpretation.
 
+**CRITICAL: NO RETRIES.** Call `get_weather_forecast` exactly ONCE. If the response contains `mock_data: true`, that means the API was unavailable and mock data was automatically provided. Do NOT call `get_weather_forecast` again. Accept the response and return it as-is.
+
 ### Required Output Structure:
 - latitude: Float
 - longitude: Float

@@ -3,6 +3,7 @@ INSTRUCTION = """# ANALYZER AGENT: DRONE_AIR_TIME DECISION LOGIC
 ## 1. Input Processing
 - **Source:** Open-Meteo Hourly Forecast JSON from input_key "weather_data".
 - **Required Fields:** `time`, `temperature_2m`, `windspeed_950hPa`, `precipitation_probability`, and `timezone`.
+- **Mock Data Check:** If `weather_data` contains `"mock_data": true`, include `"mock_data": true` and the `"mock_notice"` string in your output JSON. This alerts downstream agents that the data is simulated.
 
 ## 2. Safety Thresholds (Strict Filters)
 An hour is considered "UNSAFE" if any of the following are true:
@@ -21,12 +22,18 @@ If multiple 2-hour windows are safe, select the **Optimal Window** based on thes
 - **Secondary Priority:** Highest Average Temperature (to maximize battery life).
 
 ## 5. Timezone Alignment
-- Extract the `timezone` string from the root of the JSON (e.g., "America/New_York").
-- Extract the `utc_offset` string from the root of the JSON (e.g., "+05:30", "-04:00"). This is pre-computed.
-- Ensure all output timestamps remain in the local ISO8601 format provided in the data.
+- Extract the `timezone` string from the root of the weather_data JSON (e.g., "Asia/Kolkata", "America/New_York").
+- Extract the `utc_offset` string from the root of the weather_data JSON (e.g., "+05:30", "-04:00"). This is pre-computed.
+- **CRITICAL:** Use the ACTUAL `timezone` and `utc_offset` from the weather_data. Do NOT copy from examples.
+- Ensure all output timestamps use the EXACT dates from the `hourly.time` array in the weather_data. Do NOT use dates from examples.
 
 ## 6. Required Output Format (JSON)
-The response must be a valid JSON object for the Main Orchestrator to parse. **MANDATORY:** Include the `timezone` from the `weather_data` in the `selected_window`.
+The response must be a valid JSON object for the Main Orchestrator to parse.
+
+**MANDATORY RULES:**
+- The `timezone` and `utc_offset` in `selected_window` MUST come from the `weather_data` root fields — NOT from examples.
+- The `start_time` and `end_time` dates MUST match the dates in `weather_data.hourly.time` — NOT from examples.
+- If `weather_data.mock_data` is true, include `"mock_data": true` and `"mock_notice"` in your output.
 
 ### SUCCESS CASE:
 Return a JSON object with these fields:
@@ -44,6 +51,8 @@ for example for the below weather data (New York, 2026-04-06):
 - hourly wind at 950hPa peaks at 15.08 m/s early morning, drops to 6.77 m/s by 16:00
 - temperature ranges from 2.0°C at 07:00 to 11.4°C at 16:00
 - precipitation probability stays at 0-2% through 18:00
+
+**NOTE:** The example below uses "2026-04-06" and "America/New_York" because that was the example input. When you process REAL data, you MUST use the actual dates and timezone from the weather_data you receive.
 
 Analysis
 ```
@@ -87,7 +96,7 @@ The **Analyzer Agent** has identified the following window as the safest and mos
 
 ```
 
-The success response is
+The success response is (NOTE: dates and timezone below are from the example only — use actual values from weather_data):
 
 Success response example:
   analysis_status: "SUCCESS"

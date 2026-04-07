@@ -1,21 +1,16 @@
 import os
-import httpx
 import logging
 
-from typing import Any
 from dotenv import load_dotenv
 
 import google.cloud.logging
 
-from toolbox_core import ToolboxSyncClient
-
 from google.adk.agents import LlmAgent
 from google.adk.agents import SequentialAgent
 from google.adk.agents import ParallelAgent
-from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset
-from google.adk.tools.mcp_tool.mcp_session_manager import SseConnectionParams
 
 from .plugins import make_on_model_error_callback
+from .tools import geocode_location, get_weather_forecast, firestore_tools, calendar_toolset
 from .prompts import open_meteo as open_meteo_prompt
 from .prompts import firestore as firestore_prompt
 from .prompts import analyzer as analyzer_prompt
@@ -30,112 +25,6 @@ load_dotenv()
 
 model_name = os.getenv("MODEL", "gemini-2.5-flash")
 logging.info("Using model: %s", model_name)
-
-firestore_mcp_url = os.getenv("FIRESTORE_MCP_URL")
-calendar_mcp_base_url = os.getenv("CALENDAR_MCP_BASE_URL")
-
-calendar_mcp_health_url = None
-calendar_mcp_sse_url = None
-if calendar_mcp_base_url:
-    calendar_mcp_base_url = calendar_mcp_base_url.rstrip("/")
-    calendar_mcp_health_url = f"{calendar_mcp_base_url}/health"
-    calendar_mcp_sse_url = f"{calendar_mcp_base_url}/mcp/sse"
-
-# Setup MCP tools
-logging.info("Connecting to Firestore Toolbox at firestoremcp endpoint.")
-if not firestore_mcp_url:
-    logging.warning("FIRESTORE_MCP_URL is not set. Firestore tools disabled.")
-    firestore_tools: list[Any] = []
-else:
-    try:
-        firestore_client = ToolboxSyncClient(firestore_mcp_url)
-        firestore_tools: list[Any] = firestore_client.load_toolset()
-        logging.info("Loaded %d Firestore tools.", len(firestore_tools))
-    except Exception as e:
-        logging.warning("Failed to connect to Firestore MCP server: %s. Using empty tools list.", str(e))
-        firestore_tools: list[Any] = []
-
-calendar_toolset = None
-if not calendar_mcp_health_url or not calendar_mcp_sse_url:
-    logging.warning("CALENDAR_MCP_BASE_URL is not set. Calendar tools disabled.")
-else:
-    logging.info("Checking Calendar MCP health endpoint: %s", calendar_mcp_health_url)
-    try:
-        health_response = httpx.get(calendar_mcp_health_url, timeout=5.0)
-        if health_response.status_code == 200:
-            logging.info("Calendar MCP health check passed.")
-            logging.info("Initializing Calendar MCPToolset over SSE.")
-            calendar_toolset = MCPToolset(
-                connection_params=SseConnectionParams(
-                    url=calendar_mcp_sse_url,
-                    timeout=15.0,
-                    sse_read_timeout=900.0,
-                )
-            )
-            logging.info("Calendar MCPToolset initialized successfully via SSE.")
-        else:
-            logging.error(
-                "Calendar MCP health check failed with status %s. Calendar tools disabled.",
-                health_response.status_code,
-            )
-    except Exception as e:
-        logging.error("Failed to initialize Calendar MCPToolset: %s", str(e))
-
-# Plain Python function tools for Open-Meteo REST calls
-def geocode_location(name: str) -> dict:
-    """Search for the latitude, longitude, and timezone of a location by name."""
-    logging.info("Geocoding location: %s", name)
-    response = httpx.get(
-        "https://geocoding-api.open-meteo.com/v1/search",
-        params={"name": name, "count": 1, "language": "en", "format": "json"},
-    )
-    data = response.json()
-    if not data.get("results"):
-        logging.warning("Geocoding returned no results for location: %s", name)
-    else:
-        result = data["results"][0]
-        logging.info("Geocoding resolved '%s' to lat=%.4f, lon=%.4f, tz=%s",
-                     name, result.get("latitude"), result.get("longitude"), result.get("timezone"))
-    return data
-
-
-def get_weather_forecast(
-    latitude: float,
-    longitude: float,
-    date: str,
-    timezone: str,
-) -> dict:
-    """Get hourly weather forecast data for drone safety analysis at a given location and date."""
-    logging.info("Fetching weather forecast for lat=%.4f, lon=%.4f, date=%s, tz=%s",
-                 latitude, longitude, date, timezone)
-    response = httpx.get(
-        "https://api.open-meteo.com/v1/forecast",
-        params={
-            "latitude": latitude,
-            "longitude": longitude,
-            "hourly": "temperature_2m,windspeed_10m,windspeed_950hPa,precipitation_probability",
-            "start_date": date,
-            "end_date": date,
-            "windspeed_unit": "ms",
-            "timezone": timezone,
-        },
-    )
-    data = response.json()
-    if "hourly" not in data:
-        logging.warning("Weather forecast response missing 'hourly' field for date=%s, lat=%.4f, lon=%.4f",
-                        date, latitude, longitude)
-    else:
-        logging.info("Weather forecast retrieved successfully for date=%s.", date)
-    # Compute ISO 8601 UTC offset string from utc_offset_seconds so downstream
-    # agents can embed it in timestamps without doing timezone math.
-    utc_offset_seconds = data.get("utc_offset_seconds", 0)
-    sign = "+" if utc_offset_seconds >= 0 else "-"
-    abs_seconds = abs(utc_offset_seconds)
-    offset_hours = abs_seconds // 3600
-    offset_minutes = (abs_seconds % 3600) // 60
-    data["utc_offset"] = f"{sign}{offset_hours:02d}:{offset_minutes:02d}"
-    logging.info("Computed utc_offset: %s", data["utc_offset"])
-    return data
 
 open_meteo_agent = LlmAgent(
     name='OpenMeteo_Sensor',
