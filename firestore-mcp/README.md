@@ -71,8 +71,8 @@ chmod +x toolbox
 sources:
   firestore-source:
     kind: firestore
-    project: project-93fe33c9-4a5e-4ef1-a24
-    database: openmateodata
+    project: <your-gcp-project-id>
+    database: <your-firestore-database-name>
 
 tools:
   archive_data_to_firestore:
@@ -81,7 +81,10 @@ tools:
     description: >-
       Archives OpenMeteo weather data to Firestore. The agent must pass
       collectionPath as 'lat_long_day_wise_data' and the complete weather
-      API response JSON as documentData.
+      API response JSON as documentData. The documentData should contain
+      latitude, longitude, timezone, elevation, hourly_units, and hourly
+      fields with arrays for time, temperature_2m, windspeed_10m,
+      windspeed_950hPa, and precipitation_probability.
 
 toolsets:
   my_firestore_toolset:
